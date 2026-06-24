@@ -29,9 +29,13 @@ export const createUserZodSchema = z.object({
         })
         .optional(),
   address: z
-          .string({error: "Address must be string"})
-          .max(200, {error: "Address cannot exceed 200 chracters"})
-          .optional()
+          .object({
+            division: z.string({error: "Division is required"}),
+            district: z.string({error: "District is required"}),
+            upazila: z.string({error: "Upazila is required"}),
+            postOffice: z.string({error: "Post office is required"}),
+            village: z.string({error: "Village is required"}),
+          })
 }
 )
 
@@ -60,7 +64,12 @@ export const updateUserZodSchema = z.object({
             .enum(Object.values(IsActive))
             .optional(),
   address: z
-          .string({error: "Address must be string"})
-          .max(200, {error: "Address cannot exceed 200 chracters"})
+          .object({
+            division: z.string({error: "Division is required"}),
+            district: z.string({error: "District is required"}),
+            upazila: z.string({error: "Upazila is required"}),
+            postOffice: z.string({error: "Post office is required"}),
+            village: z.string({error: "Village is required"}),
+          })
           .optional()
 })

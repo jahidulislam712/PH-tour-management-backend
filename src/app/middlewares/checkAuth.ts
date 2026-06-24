@@ -12,7 +12,7 @@ export const checkAuth = (...authRoles: string[]) => async (req: Request, res: R
     const accessToken = req.headers.authorization
 
     if (!accessToken){
-      throw new AppError(StatusCodes.UNAUTHORIZED, "No token received.")
+      throw new AppError(StatusCodes.UNAUTHORIZED, "Authentication token is missing.")
     }
 
     const verifiedToken = verifyToken(accessToken, envVars.JWT_ACCESS_SECRET) as JwtPayload

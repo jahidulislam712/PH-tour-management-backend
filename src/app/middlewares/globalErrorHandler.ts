@@ -1,16 +1,68 @@
 import { NextFunction, Request, Response } from "express";
 import { envVars } from "../config/env";
 import AppError from "../errorHelpers/appError";
+import { TErrorSources } from "../interfaces/error.types";
+import { handleCastError } from "../helpers/handleCastError";
+import { handleValidationError } from "../helpers/handleValidationError";
+import { handleDuplicateError } from "../helpers/handleDuplicateError";
+import { handleZodError } from "../helpers/handleZodError";
+import { handleJWTError } from "../helpers/handleJWTError";
 
-export const globalErrorHandler = (err, req: Request, res: Response, next: NextFunction) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+export const globalErrorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
 
   let statusCode = 500
   let message = `Something went wrong!!`
+  let errorSources: TErrorSources[] = []
 
-  if( err instanceof AppError ){
+  if(err.name === "CastError"){
+
+    const simplifiedError = handleCastError()
+    statusCode = simplifiedError.statusCode
+    message = simplifiedError.message
+
+  } else if( err.name === "ValidationError" ){
+
+    const simplifiedError = handleValidationError(err);
+
+    statusCode = simplifiedError.statusCode
+    message = simplifiedError.message
+    errorSources = simplifiedError.errorSources as TErrorSources[]
+    
+
+  } else if( err.code === 11000 ){
+
+    const simplifiedError = handleDuplicateError(err)
+
+    statusCode = simplifiedError.statusCode
+    message = simplifiedError.message
+
+  } else if( err.name === "TokenExpiredError" ){
+
+    statusCode = 400
+    message = "Token expired. Please login again to access the resources"
+
+  } else if( err.name === "ZodError" ){
+
+    const simplifiedError = handleZodError(err)
+    
+    statusCode = simplifiedError.statusCode
+    message = simplifiedError.message
+    errorSources = simplifiedError.errorSources as TErrorSources[]
+  
+  } else if( err.name === "JsonWebTokenError" ){
+
+    const simplifiedError = handleJWTError()
+    statusCode = simplifiedError.statusCode
+    message = simplifiedError.message
+
+  } else if( err instanceof AppError ){
+
     statusCode = err.statusCode
     message = err.message
+
   }else if (err instanceof Error){
+
     statusCode = 500
     message = err.message
   }
@@ -18,7 +70,8 @@ export const globalErrorHandler = (err, req: Request, res: Response, next: NextF
   res.status(statusCode).json({
     success: false,
     message,
-    err,
+    errorSources,
+    err: envVars.NODE_ENV === "development" ? err : null,
     stack: envVars.NODE_ENV === "development" ? err.stack : null
   })
 
