@@ -23,6 +23,14 @@ export enum IsActive{
   BLOCKED = "BLOCKED"
 }
 
+export interface IAddress{
+  division: string;
+  district: string;
+  upazila: string;
+  postOffice: string;
+  village: string;
+}
+
 export interface IUser{
   _id?: Types.ObjectId;
   name: string;
@@ -30,7 +38,7 @@ export interface IUser{
   phone ?: string;
   password?: string;
   picture ?: string;
-  address ?: string;
+  address : IAddress;
   isDelete ?: boolean;
   isActive ?: IsActive;
   isVerified ?: boolean;

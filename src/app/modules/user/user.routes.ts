@@ -9,7 +9,10 @@ import { Role } from "./user.interface";
 const router = Router()
 
 // create/resiter user
-router.post('/register', validateRequest(createUserZodSchema), userControllers.createUser)
+router.post(
+  '/register',
+  validateRequest(createUserZodSchema),
+  userControllers.createUser)
 
 
 
