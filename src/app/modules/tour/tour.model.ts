@@ -1,6 +1,7 @@
 import { model, Schema } from "mongoose";
 import { ITour, ITourType } from "./tour.interface";
 import slugify from "slugify";
+import { imageSchema } from "../division/division.model";
 
 /**========================
  * TourType Schema
@@ -72,7 +73,7 @@ export const tourSchema = new Schema<ITour>(
       type: String,
     },
     images: {
-      type: [String],
+      type: [imageSchema],
       default: [],
     },
     location: { type: String },

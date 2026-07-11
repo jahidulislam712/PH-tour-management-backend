@@ -3,6 +3,7 @@ import AppError from "../../errorHelpers/appError"
 import { IDivision } from "./division.interface"
 import Division from "./division.model"
 import slugify from "slugify"
+import { deleteFromCloudinary } from "../../config/cloudinary.config"
 
 // create division
 const createDivision = async (payload: Partial<IDivision>) => {
@@ -49,18 +50,23 @@ const updateDivision = async (id: string, payload: Partial<IDivision>) => {
     throw new AppError(StatusCodes.NOT_FOUND, "Division not found!")
   }
 
-  const duplicateDivision = await Division.findOne({
-    _id: { $ne: id },
-    name: payload.name as string
-  })
-
-  if( duplicateDivision ){
-    throw new AppError(StatusCodes.BAD_REQUEST, "A division with this name already exists.")
+  if( payload.name ){
+    const duplicateDivision = await Division.findOne({
+      _id: { $ne: id },
+      name: payload.name as string
+    })
+    if( duplicateDivision ){
+      throw new AppError(StatusCodes.BAD_REQUEST, "A division with this name already exists.")
+    }
   }
 
-  const updateDivision = await Division.findByIdAndUpdate(id, payload, {returnDocument: "after"})
+  const updatedDivision = await Division.findByIdAndUpdate(id, payload, {returnDocument: "after"})
 
-  return updateDivision
+  if( payload?.thumbnail?.publicId && isDivisionExist.thumbnail?.publicId ){
+    await deleteFromCloudinary(isDivisionExist.thumbnail.publicId)
+  }
+
+  return updatedDivision
 
 }
 

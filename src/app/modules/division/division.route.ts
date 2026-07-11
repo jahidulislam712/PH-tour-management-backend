@@ -4,6 +4,7 @@ import { createDivisionZodValidation, updateDivisionZodValidation } from "./divi
 import { validateRequest } from "../../middlewares/validateRequest";
 import { checkAuth } from "../../middlewares/checkAuth";
 import { Role } from "../user/user.interface";
+import { multerUpload } from "../../config/multer.config";
 
 
 const router = Router()
@@ -11,12 +12,14 @@ const router = Router()
 // create division
 router.post( "/create",
   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  multerUpload.single("file"),
   validateRequest(createDivisionZodValidation),
   divisionController.createDivision)
 
 // update division
 router.patch("/:id",
   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  multerUpload.single("file"),
   validateRequest(updateDivisionZodValidation),
   divisionController.updateDivision)
 

@@ -1,9 +1,12 @@
 import { StatusCodes } from "http-status-codes";
 import AppError from "../../errorHelpers/appError";
-import { ITour, ITourType } from "./tour.interface";
+import { ITour, ITourType, IUpdateTour } from "./tour.interface";
 import { Tour, TourType } from "./tour.model";
 import { QueryBuilder } from "../../utils/queryBuilder";
 import { tourSearchableFields } from "./tour.constant";
+import { withCloudinaryCleanup } from "../../utils/cloudinaryCleanup";
+import { UploadApiResponse } from "cloudinary";
+import { deleteFromCloudinary } from "../../config/cloudinary.config";
 
 // create tour-type
 const createTourType = async (payload: Partial<ITourType>) => {
@@ -91,7 +94,11 @@ const createTour = async (payload: Partial<ITour>) => {
     );
   }
 
-  const tour = await Tour.create(payload);
+  //const tour = await Tour.create(payload);
+  const tour = await withCloudinaryCleanup(
+    payload.images?.map((image) => image.publicId) ?? [],
+    () => Tour.create(payload)
+  )
 
   return tour;
 };
@@ -126,7 +133,7 @@ const getAllTours = async (query: Record<string, string>) => {
 };
 
 // update tour
-const updateTour = async (id:string, payload: Partial<ITour>) => {
+const updateTour = async (id:string, payload: Partial<IUpdateTour>, uploadedImages: UploadApiResponse[]) => {
 
   const isTourExist = await Tour.findById(id);
 
@@ -137,7 +144,34 @@ const updateTour = async (id:string, payload: Partial<ITour>) => {
     );
   }
 
-  const tour = await Tour.findByIdAndUpdate(id, payload, {returnDocument: "after"});
+  let images = [...(isTourExist.images ?? [])]
+  const deleteImages = payload.deleteImages ?? []
+
+  images = images.filter(
+    image => !deleteImages.includes(image.publicId)
+  )
+  
+  if( uploadedImages.length ){
+    uploadedImages.forEach((image) => {
+      images.push({
+        url: image.secure_url,
+        publicId: image.public_id,
+        altText: payload.title || isTourExist.title,
+        format: image.format,
+        height: image.height,
+        width: image.width
+      })
+    })
+  }
+
+  payload.images = images
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const {deleteImages: _, ...updatedPayload} = payload
+
+  const tour = await Tour.findByIdAndUpdate(id, updatedPayload, {returnDocument: "after"})
+
+  await deleteFromCloudinary(payload.deleteImages || [])
 
   return tour;
 };
