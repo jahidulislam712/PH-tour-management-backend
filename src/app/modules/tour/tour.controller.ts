@@ -3,6 +3,9 @@ import { catchAsync } from "../../utils/catchAsync";
 import { tourServices } from "./tour.service";
 import { sendResponse } from "../../utils/sendResponse";
 import { StatusCodes } from "http-status-codes";
+import { UploadApiResponse } from "cloudinary";
+import { uploadToCloudinary } from "../../config/cloudinary.config";
+import { ITour } from "./tour.interface";
 
 
 /** ================================
@@ -68,7 +71,30 @@ const getAllTourType = catchAsync( async(req: Request, res: Response) => {
  ================================ */
 const createTour = catchAsync( async (req: Request, res: Response) => {
 
-  const tour = await tourServices.createTour(req.body)
+  const uploadImages: UploadApiResponse[] = []
+  if( req.files ){
+    for(const file of req.files as Express.Multer.File[]){
+      const image = await uploadToCloudinary(file.buffer, "tours")
+      uploadImages.push(image)
+    }
+  }
+
+  const payload: Partial<ITour> = {
+    ...req.body 
+  }
+
+  if( uploadImages.length ){
+    payload.images = uploadImages.map((image) => ({
+      url: image.secure_url,
+      publicId: image.public_id,
+      altText: req.body.title,
+      format: image.format,
+      height: image.height,
+      width: image.width
+    }))
+  }
+
+  const tour = await tourServices.createTour(payload)
 
   sendResponse(res, {
     success: true,
@@ -99,7 +125,16 @@ const getAllTours = catchAsync( async (req: Request, res: Response) => {
 
 const updateTour = catchAsync( async (req: Request, res: Response) => {
 
-  const tour = await tourServices.updateTour(req.params.id as string, req.body)
+  const uploadedImages: UploadApiResponse[] = []
+
+  if( req.files ){
+    for(const file of req.files as Express.Multer.File[]){
+      const image = await uploadToCloudinary(file.buffer, "tours")
+      uploadedImages.push(image)
+    }
+  }
+
+  const tour = await tourServices.updateTour(req.params.id as string, req.body, uploadedImages)
 
   sendResponse(res, {
     success: true,

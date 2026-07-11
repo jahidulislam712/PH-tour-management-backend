@@ -1,4 +1,5 @@
 import { Types } from "mongoose";
+import { IImage } from "../division/division.interface";
 
 export interface ITourType{
   name: string;
@@ -9,7 +10,7 @@ export interface ITour{
   title: string;
   slug: string;
   description: string;
-  images? : string[];
+  images? : IImage[];
   location?: string;
   costFrom?: number;
   startDate?: Date;
@@ -24,5 +25,8 @@ export interface ITour{
   minAge?: number;
   division?: Types.ObjectId;
   tourType?: Types.ObjectId;
+}
+
+export interface IUpdateTour extends Partial<ITour>{
   deleteImages?: string[]
 }

@@ -7,9 +7,8 @@ import { handleValidationError } from "../helpers/handleValidationError";
 import { handleDuplicateError } from "../helpers/handleDuplicateError";
 import { handleZodError } from "../helpers/handleZodError";
 import { handleJWTError } from "../helpers/handleJWTError";
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
-export const globalErrorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
+export const globalErrorHandler = async (err: any, req: Request, res: Response, next: NextFunction) => {
 
   let statusCode = 500
   let message = `Something went wrong!!`

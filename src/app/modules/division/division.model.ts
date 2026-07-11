@@ -1,11 +1,26 @@
 import { model, Schema } from "mongoose";
-import { IDivision } from "./division.interface";
+import { IDivision, IImage } from "./division.interface";
+
+export const imageSchema = new Schema<IImage>({
+  url: {type: String, required: true},
+  publicId: {type: String, required: true},
+  altText: {type: String},
+  height: {type: Number},
+  width: {type: Number},
+  format: {type: String}
+}, {
+  versionKey: false,
+  _id: false
+})
 
 const divisionSchema = new Schema<IDivision>(
   {
     name: { type: String, required: true, unique: true },
     slug: { type: String, unique: true },
-    thumbnail: { type: String, default: null },
+    thumbnail: {
+      type: [imageSchema],
+      default: null
+    },
     description: { type: String, default: null },
   },
   {
