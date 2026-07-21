@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextFunction, Request, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
@@ -23,7 +24,7 @@ const credentialsLogin = catchAsync( async (req: Request, res: Response, next: N
     async (err: any, user: any, info: any) => {
 
       if( err ){
-        return next(new AppError(401, err))
+        return next(new AppError(err.statusCode, err.message))
       }
 
       if( !user ){
@@ -112,8 +113,54 @@ const chagePassword = catchAsync(async (req: Request, res: Response) => {
 
 })
 
+// set password after google login
+const setPassword = catchAsync( async (req: Request, res: Response) => {
+
+  const decodedToken = req.user as JwtPayload
+  const { password } = req.body
+  
+  await AuthServices.setPassword(decodedToken.userId, password)
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Password has changed successfully",
+    data: null
+  })
+})
+
+// forgot password
+const forgotPassword = catchAsync( async(req: Request, res: Response) => {
+  const { email } = req.body
+  AuthServices.forgotPassword(email)
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Email sent successfully",
+    data: null
+  })
+
+} )
+
+// reset password
+const resetPassword = catchAsync( async(req: Request, res: Response) => {
+
+  const decodedToken = req.user as JwtPayload
+
+  AuthServices.resetPassword(req.body, decodedToken)
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Password Changed successfully",
+    data: null
+  })
+
+} )
+
 // google callback controler
-const googleCallback = catchAsync( async(req: Request, res: Response, next: NextFunction) => {
+const googleCallback = catchAsync( async(req: Request, res: Response) => {
   let redirectTo = req.query.state ? req.query.state as string : ""
   if( redirectTo.startsWith("/") ){
     redirectTo = redirectTo.slice(1)
@@ -137,5 +184,8 @@ export const AuthControllers = {
   getNewAccessToken,
   logout,
   chagePassword,
-  googleCallback
+  setPassword,
+  googleCallback,
+  forgotPassword,
+  resetPassword
 }

@@ -38,6 +38,30 @@ export const uploadToCloudinary = async (buffer: Buffer, folder: string): Promis
   });
 };
 
+export const uploadPDFToCloudinary = async(buffer: Buffer, publicId: string) : Promise<UploadApiResponse> => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinaryUploader.uploader.upload_stream(
+      {
+        folder: "tour-management/invoices",
+        resource_type: "auto",
+        format: "pdf",
+        public_id: publicId
+      },
+      (error, result) => {
+        if(error) return reject(error)
+
+        if( !result ){
+          return reject(new Error("Cloudinary returned no result."))
+        }
+
+        resolve(result)
+      }
+    )
+
+    stream.end(buffer)
+  })
+}
+
 export const deleteFromCloudinary = async (publicId: string | string[]) => {
   if( !publicId.length ) return
 

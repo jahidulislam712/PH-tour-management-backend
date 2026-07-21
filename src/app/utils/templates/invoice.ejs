@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Invoice</title>
+</head>
+
+<body style="margin:0; padding:0; background:#f4f6f8; font-family:Arial, Helvetica, sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+  <tr>
+    <td align="center">
+
+      <table
+        width="600"
+        cellpadding="0"
+        cellspacing="0"
+        style="background:#ffffff; border-radius:8px; padding:40px;"
+      >
+
+        <tr>
+          <td align="center">
+            <h2 style="margin:0; color:#222;">
+              Payment Successful
+            </h2>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding-top:30px;">
+
+            <p style="font-size:16px; color:#555;">
+              Hello <strong><%= name %></strong>,
+            </p>
+
+            <p style="font-size:16px; color:#555; line-height:1.7;">
+              Thank you for your booking with
+              <strong><%= appName %></strong>.
+              Your payment has been successfully processed.
+            </p>
+
+            <table>
+              <tr>
+                <td align="center" style="padding:20px 0;">
+                  <a
+                    href="<%= invoiceUrl %>"
+                    target="_blank"
+                    style="
+                      display:inline-block;
+                      background:#2563eb;
+                      color:#ffffff;
+                      text-decoration:none;
+                      padding:12px 24px;
+                      border-radius:6px;
+                      font-size:15px;
+                      font-weight:bold;
+                    "
+                  >
+                    Download Invoice
+                  </a>
+
+                  <p style="margin-top:12px; font-size:13px; color:#777;">
+                    If the button doesn't work, copy and paste this link into your browser:
+                    <br />
+                    <a
+                      href="<%= invoiceUrl %>"
+                      style="color:#2563eb; word-break:break-all;"
+                    >
+                      <%= invoiceUrl %>
+                    </a>
+                  </p>
+                </td>
+              </tr>
+            </table>
+
+            <table
+              width="100%"
+              cellpadding="10"
+              cellspacing="0"
+              style="margin:30px 0; border:1px solid #e5e7eb; border-collapse:collapse;"
+            >
+              <tr>
+                <td style="font-weight:bold; border-bottom:1px solid #e5e7eb;">
+                  Invoice Number
+                </td>
+                <td style="border-bottom:1px solid #e5e7eb;">
+                  <%= invoiceNumber %>
+                </td>
+              </tr>
+
+              <tr>
+                <td style="font-weight:bold; border-bottom:1px solid #e5e7eb;">
+                  Tour
+                </td>
+                <td style="border-bottom:1px solid #e5e7eb;">
+                  <%= tourTitle %>
+                </td>
+              </tr>
+
+              <tr>
+                <td style="font-weight:bold; border-bottom:1px solid #e5e7eb;">
+                  Amount Paid
+                </td>
+                <td style="border-bottom:1px solid #e5e7eb;">
+                  <%= currency %> <%= amount %>
+                </td>
+              </tr>
+
+              <tr>
+                <td style="font-weight:bold;">
+                  Payment Status
+                </td>
+                <td>
+                  <span style="color:#16a34a; font-weight:bold;">
+                    <%= paymentStatus %>
+                  </span>
+                </td>
+              </tr>
+            </table>
+
+            <p style="font-size:15px; color:#555; line-height:1.6;">
+              Please keep this invoice for your records. If you have any
+              questions regarding your booking or payment, feel free to contact
+              our support team.
+            </p>
+
+            <p style="font-size:15px; color:#555;">
+              Thank you for choosing
+              <strong><%= appName %></strong>.
+            </p>
+
+          </td>
+        </tr>
+
+        <tr>
+          <td align="center" style="padding-top:30px;">
+            <p style="font-size:12px; color:#999;">
+              © <%= year %> <%= appName %>. All rights reserved.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Strategy as GoogleStrategy, VerifyCallback } from "passport-google-oauth20"
 import { Strategy as LocalStrategy } from "passport-local"
 import { envVars } from "./env"
@@ -46,6 +47,7 @@ passport.use(
 
         return done(null, isUserExist)
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.log(error)
         done(error)
       }

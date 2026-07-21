@@ -7,6 +7,10 @@ import { PAYMENT_STATUS } from "./payment.interface";
 import { Payment } from "./payment.model";
 import { ISSLCommerz } from "../sslCommerz/sslCommerz.interface";
 import { User } from "../user/user.model";
+import { generateInvoicePDF } from "../../utils/invoice";
+import { Tour } from "../tour/tour.model";
+import { sendEmail } from "../../utils/sendEmail";
+import { uploadPDFToCloudinary } from "../../config/cloudinary.config";
 
 
 const initPayment = async (bookingId: string) => {
@@ -73,12 +77,92 @@ const paymentSuccess = async (query: Record<string, string>) => {
       },
     ).populate("booking");
 
+
     // update booking status
-    await Booking.findOneAndUpdate(updatedPayment?.booking, {
+    const updatedBooking = await Booking.findOneAndUpdate(updatedPayment?.booking, {
       status: BOOKING_STATUS.COMPLETE,
     })
       .populate("tour")
       .populate("user");
+
+    const user = await User.findById(updatedBooking?.user)
+    const tour = await Tour.findById(updatedBooking?.tour)
+
+    // Generate invoice PDF
+    const pdfBuffer = await generateInvoicePDF({
+      invoiceNumber: `#${transactionId}`,
+      booking: {
+        _id: updatedBooking?._id?.toString() || "",
+        gestCount: Number(updatedBooking?.gestCount),
+        createdAt: updatedBooking?.createdAt || new Date(),
+        user:{
+          name: user?.name || "",
+          email: user?.email || "",
+          phone: user?.phone || "",
+          address: [
+            user?.address?.village,
+            user?.address?.postOffice,
+            user?.address?.upazila,
+            user?.address?.district,
+            user?.address?.division
+          ]
+          .filter(Boolean)
+          .join(", ") || ""
+        }
+      },
+      payment: {
+        transactionId: transactionId,
+        amount: updatedPayment?.amount || 0,
+        status: updatedPayment?.status || PAYMENT_STATUS.PAID
+      },
+      tour: {
+        title: tour?.title || ""
+      }
+    })
+
+    // upload PDF to cloudinary
+    const uploadedInvoice = await uploadPDFToCloudinary(pdfBuffer, `invoice-${transactionId}`)
+
+    if( !uploadedInvoice ){
+      throw new AppError(StatusCodes.EXPECTATION_FAILED, "Invoice uploading failed to Cloudinary")
+    }
+
+    await Payment.findOneAndUpdate(
+      updatedPayment?._id,
+      {
+        invoice:{
+          url: uploadedInvoice.secure_url,
+          publicId: uploadedInvoice.public_id
+        }
+      }
+    )
+
+    await sendEmail({
+      subject: "Invoice",
+      to: user?.email || "",
+      templateName: "invoice",
+      templateData: {
+        name: user?.name,
+        appName: "Tour Management System",
+        invoiceNumber: `#${transactionId}`,
+        invoiceUrl: uploadedInvoice.secure_url,
+        tourTitle: tour?.title,
+        amount: updatedPayment?.amount,
+        currency: "BDT",
+        paymentStatus: updatedPayment?.status,
+        year: new Date().getFullYear(),
+      },
+      // attachments: [
+      //   {
+      //     filename: "invoice.pdf",
+      //     content: pdfBuffer,
+      //     contentType: "application/pdf"
+      //   }
+      // ]
+    })
+
+    // For now, just log that PDF was generated
+    console.log(`Invoice PDF generated for transaction: ${transactionId}`)
 
     session.commitTransaction();
     session.endSession();
