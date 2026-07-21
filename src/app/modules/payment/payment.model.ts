@@ -1,5 +1,13 @@
 import { model, Schema } from "mongoose";
-import { IPayment, PAYMENT_STATUS } from "./payment.interface";
+import { IInvoice, IPayment, PAYMENT_STATUS } from "./payment.interface";
+
+const invoiceSchema = new Schema<IInvoice>({
+  url: String,
+  publicId: String
+}, {
+  _id: false,
+  versionKey: false
+})
 
 const paymentSchema = new Schema<IPayment>({
   booking: {
@@ -19,7 +27,7 @@ const paymentSchema = new Schema<IPayment>({
   paymentGatewayData: {
     type: Schema.Types.Mixed
   },
-  invoiceUrl: {type: String},
+  invoice: {type: invoiceSchema},
   status: {
     type: String,
     enum: Object.values(PAYMENT_STATUS),
